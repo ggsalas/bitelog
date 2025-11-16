@@ -5,10 +5,10 @@ Build a web app that uses camera to capture meal images, analyzes them with Olla
 
 ## Implementation Steps
 
-### Phase 1: Basic Setup & Home Page
-- [ ] 1.1 Clean default Next.js page content
-- [ ] 1.2 Create home page with "Scan New Bite" link/button
-- [ ] 1.3 Set up basic routing structure
+### Phase 1: Basic Setup & Home Page ✅
+- [x] 1.1 Clean default Next.js page content
+- [x] 1.2 Create home page with "Scan New Bite" link/button
+- [x] 1.3 Set up basic routing structure
 
 ### Phase 2: Camera & Image Capture
 - [ ] 2.1 Create `/scan` page (or similar route)

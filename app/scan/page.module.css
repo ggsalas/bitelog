@@ -1,0 +1,31 @@
+.page {
+  display: flex;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-geist-sans);
+  padding: 24px;
+}
+
+.main {
+  display: flex;
+  width: 100%;
+  max-width: 600px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  text-align: center;
+}
+
+.main h1 {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.main p {
+  font-size: 16px;
+  color: var(--foreground);
+  opacity: 0.7;
+}
