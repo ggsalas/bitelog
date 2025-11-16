@@ -1,13 +1,17 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { analyzeFood } from "@/app/actions/analyzeFood";
 import styles from "./page.module.css";
 
 export default function Scan() {
+  const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState<string>("");
   const [debugInfo, setDebugInfo] = useState<string[]>([]);
 
@@ -106,7 +110,7 @@ export default function Scan() {
     };
   }, []);
 
-  function capturePhoto() {
+  async function capturePhoto() {
     if (!videoRef.current || !canvasRef.current) {
       addDebugInfo("ERROR: Video or canvas element not ready");
       return;
@@ -135,11 +139,29 @@ export default function Scan() {
     addDebugInfo("Photo captured!");
     addDebugInfo(`Image size: ${imageDataUrl.length} characters`);
     addDebugInfo(`Image dimensions: ${canvas.width} x ${canvas.height}`);
-    addDebugInfo(`Image data (first 100 chars): ${imageDataUrl.substring(0, 100)}...`);
     
-    console.log("Captured Image (base64):", imageDataUrl);
-    console.log("Image size:", imageDataUrl.length, "characters");
-    console.log("Image dimensions:", canvas.width, "x", canvas.height);
+    // Call Server Action to analyze food
+    setIsAnalyzing(true);
+    addDebugInfo("Sending to Ollama for analysis...");
+    
+    try {
+      const result = await analyzeFood(imageDataUrl);
+      
+      if (result.success) {
+        addDebugInfo("Analysis complete! Redirecting...");
+        // Navigate to addData page with result
+        router.push(`/addData?result=${encodeURIComponent(result.data)}`);
+      } else {
+        addDebugInfo(`ERROR: ${result.error}`);
+        setError(result.error || "Failed to analyze image");
+        setIsAnalyzing(false);
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      addDebugInfo(`ERROR: ${errorMessage}`);
+      setError("Failed to analyze image");
+      setIsAnalyzing(false);
+    }
   }
 
   return (
@@ -150,6 +172,12 @@ export default function Scan() {
         {isLoading && (
           <div className={styles.status}>
             <p>Initializing camera...</p>
+          </div>
+        )}
+
+        {isAnalyzing && (
+          <div className={styles.status}>
+            <p>Analyzing food with AI...</p>
           </div>
         )}
 
@@ -166,7 +194,7 @@ export default function Scan() {
           ))}
         </div>
 
-        {!error && !isLoading && (
+        {!error && !isLoading && !isAnalyzing && (
           <>
             <div className={styles.cameraContainer}>
               <video

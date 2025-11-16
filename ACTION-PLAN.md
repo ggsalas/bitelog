@@ -17,11 +17,11 @@ Build a web app that uses camera to capture meal images, analyzes them with Olla
 - [ ] 2.4 Display captured image preview
 - [ ] 2.5 Optimize for mobile devices (primary use case)
 
-### Phase 3: Ollama Integration (Text Format)
-- [ ] 3.1 Set up Ollama API client/connection
-- [ ] 3.2 Create API route to handle image processing
-- [ ] 3.3 Implement image-to-base64 conversion for API
-- [ ] 3.4 Send image with nutrition prompt (English translation):
+### Phase 3: Ollama Integration (Text Format) ✅
+- [x] 3.1 Set up Ollama API client/connection
+- [x] 3.2 Create Server Action to handle image processing
+- [x] 3.3 Implement image-to-base64 conversion for API
+- [x] 3.4 Send image with nutrition prompt (English translation):
   ```
   Act as a certified nutritionist specialized in visual food analysis.
   
@@ -44,12 +44,12 @@ Build a web app that uses camera to capture meal images, analyzes them with Olla
   ```
   
   **Note**: Original prompt in Spanish available in app-description.md
-- [ ] 3.5 Handle loading states and errors
+- [x] 3.5 Handle loading states and errors
 
-### Phase 4: Display Results
-- [ ] 4.1 Create UI component to display text response
-- [ ] 4.2 Show both image and analysis results
-- [ ] 4.3 Add basic styling for readability
+### Phase 4: Display Results ✅
+- [x] 4.1 Create UI component to display text response
+- [x] 4.2 Show both image and analysis results (analysis shown on /addData page)
+- [x] 4.3 Add basic styling for readability
 
 ### Phase 5: JSON Format Refactor
 - [ ] 5.1 Update prompt to request JSON format output
