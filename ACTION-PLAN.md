@@ -13,7 +13,7 @@ Build a web app that uses camera to capture meal images, analyzes them with Olla
 ### Phase 2: Camera & Image Capture
 - [x] 2.1 Create `/scan` page (or similar route)
 - [x] 2.2 Implement camera access using browser MediaDevices API
-- [ ] 2.3 Add capture button to take photo
+- [x] 2.3 Add capture button to take photo
 - [ ] 2.4 Display captured image preview
 - [ ] 2.5 Optimize for mobile devices (primary use case)
 

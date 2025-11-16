@@ -40,6 +40,24 @@
   line-height: 24px;
 }
 
+.debugInfo {
+  width: 100%;
+  max-width: 600px;
+  padding: 16px;
+  border-radius: 8px;
+  background: rgba(0, 122, 255, 0.1);
+  color: var(--foreground);
+  font-size: 12px;
+  font-family: monospace;
+  text-align: left;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.debugInfo div {
+  margin-bottom: 4px;
+}
+
 .cameraContainer {
   position: relative;
   width: 100%;
@@ -56,6 +74,39 @@
   object-fit: cover;
 }
 
+.captureButton {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 4px solid #fff;
+  background: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.1s, background 0.2s;
+  padding: 0;
+}
+
+.captureButton:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.captureButton:active {
+  transform: translateX(-50%) scale(0.95);
+}
+
+.captureButtonInner {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #fff;
+}
+
 @media (max-width: 600px) {
   .page {
     padding: 16px;
@@ -67,5 +118,16 @@
 
   .cameraContainer {
     border-radius: 12px;
+  }
+
+  .captureButton {
+    bottom: 16px;
+    width: 64px;
+    height: 64px;
+  }
+
+  .captureButtonInner {
+    width: 48px;
+    height: 48px;
   }
 }
