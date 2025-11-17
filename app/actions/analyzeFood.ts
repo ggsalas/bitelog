@@ -1,6 +1,53 @@
 "use server";
 
-export async function analyzeFood(imageBase64: string) {
+import type { FoodAnalysis } from "@/app/types/nutrition";
+
+const MODEL = "llava:7b-v1.6"; // ok
+// const MODEL = "moondream"; // bad
+// const MODEL = "aiden_lu/minicpm-v2.6:Q4_K_M";
+// const MODEL = "llama3.2-vision:latest"; // ok, pareciera peor que llava
+
+/**
+ * Extracts JSON from text that may contain markdown code blocks or surrounding text
+ */
+// function extractJSON(text: string): string {
+//   // Try to find JSON in markdown code blocks first
+//   const codeBlockMatch = text.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
+//   if (codeBlockMatch) {
+//     return codeBlockMatch[1];
+//   }
+//
+//   // Try to find JSON object directly (between first { and last })
+//   const jsonMatch = text.match(/\{[\s\S]*\}/);
+//   if (jsonMatch) {
+//     return jsonMatch[0];
+//   }
+//
+//   // Return original text if no JSON pattern found
+//   return text;
+// }
+
+export type AnalyzeFoodResult =
+  | {
+      success: true;
+      data: FoodAnalysis;
+      rawResponse: string;
+      parseError?: undefined;
+    }
+  | {
+      success: true;
+      data: null;
+      rawResponse: string;
+      parseError: string;
+    }
+  | {
+      success: false;
+      error: string;
+    };
+
+export async function analyzeFood(
+  imageBase64: string,
+): Promise<AnalyzeFoodResult> {
   try {
     // Remove the data:image/jpeg;base64, prefix if present
     const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
@@ -16,17 +63,59 @@ CONTEXT: You are going to analyze a food photograph to extract nutritional infor
 SPECIFIC INSTRUCTIONS:
 - Identify each individual visible ingredient
 - Estimate the weight in grams (use visual references like plate size, cutlery, etc.)
-- Calculate calories based on standard nutritional values
+- Calculate detailed nutritional values: calories, protein, carbs, fats, and fiber
 - Consider the cooking method if visible (fried, baked, boiled)
 - If there are sauces or dressings, include them separately
 
-MANDATORY FORMAT:
-ingredient: weight_in_gr, total_calories; ingredient: weight_in_gr, total_calories
+MANDATORY FORMAT - Return ONLY valid JSON, nothing else:
+{
+  "ingredient_name": {
+    "weight": number_in_grams,
+    "calories": number_in_kcal,
+    "protein": number_in_grams,
+    "carbs": number_in_grams,
+    "fats": number_in_grams,
+    "fiber": number_in_grams
+  }
+}
 
 CORRECT EXAMPLE:
-grilled chicken breast: 200gr, 330cal; cooked white rice: 150gr, 195cal; mixed salad: 80gr, 20cal; ranch dressing: 30gr, 145cal
+{
+  "grilled chicken breast": {
+    "weight": 200,
+    "calories": 330,
+    "protein": 62,
+    "carbs": 0,
+    "fats": 7,
+    "fiber": 0
+  },
+  "cooked white rice": {
+    "weight": 150,
+    "calories": 195,
+    "protein": 4,
+    "carbs": 43,
+    "fats": 0,
+    "fiber": 1
+  },
+  "mixed salad": {
+    "weight": 80,
+    "calories": 20,
+    "protein": 1,
+    "carbs": 4,
+    "fats": 0,
+    "fiber": 2
+  },
+  "ranch dressing": {
+    "weight": 30,
+    "calories": 145,
+    "protein": 0,
+    "carbs": 2,
+    "fats": 15,
+    "fiber": 0
+  }
+}
 
-Now analyze this image:`;
+IMPORTANT: Return ONLY the JSON object, with no additional text before or after.`;
 
     // Send request to Ollama
     const response = await fetch(ollamaUrl, {
@@ -35,9 +124,10 @@ Now analyze this image:`;
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "llava:7b-v1.6",
+        model: MODEL,
         prompt: prompt,
         images: [base64Data],
+        format: "json",
         stream: false,
       }),
     });
@@ -51,23 +141,42 @@ Now analyze this image:`;
 
     // Ollama returns the response in the "response" field
     if (data.response) {
-      return {
-        success: true,
-        data: data.response,
-      };
+      // Try to extract and parse JSON from the response
+      // const jsonText = extractJSON(data.response);
+
+      try {
+        const parsedData = JSON.parse(data.response) as FoodAnalysis;
+        return {
+          success: true,
+          data: parsedData,
+          rawResponse: data.response, // Keep raw response for debugging
+        };
+      } catch (parseError) {
+        // If JSON parsing fails, return raw text for fallback display
+        console.error("JSON parsing failed:", parseError);
+        return {
+          success: true,
+          data: null,
+          rawResponse: data.response,
+          parseError:
+            parseError instanceof Error
+              ? parseError.message
+              : "Failed to parse JSON",
+        };
+      }
     } else {
       throw new Error("No response from Ollama");
     }
   } catch (error) {
     console.error("Error analyzing food:", error);
-    
+
     if (error instanceof Error) {
       return {
         success: false,
         error: error.message,
       };
     }
-    
+
     return {
       success: false,
       error: "Unknown error occurred",

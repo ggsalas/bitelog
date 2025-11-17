@@ -159,8 +159,15 @@ export default function Scan() {
 
       if (result.success) {
         addDebugInfo("Analysis complete! Redirecting...");
-        // Navigate to addData page with result
-        router.push(`/addData?result=${encodeURIComponent(result.data)}`);
+        
+        // Serialize the result for URL passing
+        const resultData = {
+          data: result.data,
+          rawResponse: result.rawResponse,
+          parseError: result.parseError,
+        };
+        
+        router.push(`/addData?result=${encodeURIComponent(JSON.stringify(resultData))}`);
       } else {
         addDebugInfo(`ERROR: ${result.error}`);
         setError(result.error || "Failed to analyze image");

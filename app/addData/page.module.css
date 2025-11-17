@@ -24,12 +24,88 @@
   text-align: center;
 }
 
+.main h2 {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--foreground);
+  margin-bottom: 16px;
+}
+
+.main h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--foreground);
+  margin-bottom: 12px;
+  text-transform: capitalize;
+}
+
 .resultContainer {
   width: 100%;
-  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ingredientCard,
+.totalsCard {
+  width: 100%;
+  padding: 20px;
   border-radius: 12px;
   background: rgba(0, 122, 255, 0.1);
   border: 1px solid rgba(0, 122, 255, 0.2);
+}
+
+.totalsCard {
+  background: rgba(0, 200, 100, 0.1);
+  border: 1px solid rgba(0, 200, 100, 0.3);
+  margin-top: 8px;
+}
+
+.nutrientGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.nutrient {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+.nutrientLabel {
+  font-size: 14px;
+  color: rgba(var(--foreground-rgb), 0.7);
+  font-weight: 500;
+}
+
+.nutrientValue {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.warning {
+  width: 100%;
+  padding: 16px;
+  border-radius: 8px;
+  background: rgba(255, 165, 0, 0.1);
+  border: 1px solid rgba(255, 165, 0, 0.3);
+  margin-bottom: 16px;
+}
+
+.warning p {
+  margin: 4px 0;
+  color: rgba(255, 165, 0, 1);
+}
+
+.errorDetail {
+  font-size: 12px;
+  font-family: monospace;
+  margin-top: 8px;
 }
 
 .resultText {
@@ -38,6 +114,10 @@
   color: var(--foreground);
   white-space: pre-wrap;
   word-wrap: break-word;
+  padding: 24px;
+  border-radius: 12px;
+  background: rgba(0, 122, 255, 0.1);
+  border: 1px solid rgba(0, 122, 255, 0.2);
 }
 
 .backButton {
@@ -72,6 +152,23 @@
 
   .main h1 {
     font-size: 24px;
+  }
+
+  .main h2 {
+    font-size: 20px;
+  }
+
+  .main h3 {
+    font-size: 16px;
+  }
+
+  .nutrientGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .nutrientLabel,
+  .nutrientValue {
+    font-size: 13px;
   }
 
   .resultText {
