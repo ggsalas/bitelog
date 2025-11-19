@@ -3,29 +3,11 @@
 import type { FoodAnalysis } from "@/app/types/nutrition";
 
 const MODEL = "llava:7b-v1.6"; // ok
+// const MODEL = "gemma3:latest"; // maso y lehnto
+// const MODEL = "benzie/llava-phi-3:latest"; // bastante mall
 // const MODEL = "moondream"; // bad
 // const MODEL = "aiden_lu/minicpm-v2.6:Q4_K_M";
 // const MODEL = "llama3.2-vision:latest"; // ok, pareciera peor que llava
-
-/**
- * Extracts JSON from text that may contain markdown code blocks or surrounding text
- */
-// function extractJSON(text: string): string {
-//   // Try to find JSON in markdown code blocks first
-//   const codeBlockMatch = text.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
-//   if (codeBlockMatch) {
-//     return codeBlockMatch[1];
-//   }
-//
-//   // Try to find JSON object directly (between first { and last })
-//   const jsonMatch = text.match(/\{[\s\S]*\}/);
-//   if (jsonMatch) {
-//     return jsonMatch[0];
-//   }
-//
-//   // Return original text if no JSON pattern found
-//   return text;
-// }
 
 export type AnalyzeFoodResult =
   | {
@@ -139,11 +121,7 @@ IMPORTANT: Return ONLY the JSON object, with no additional text before or after.
 
     const data = await response.json();
 
-    // Ollama returns the response in the "response" field
     if (data.response) {
-      // Try to extract and parse JSON from the response
-      // const jsonText = extractJSON(data.response);
-
       try {
         const parsedData = JSON.parse(data.response) as FoodAnalysis;
         return {
