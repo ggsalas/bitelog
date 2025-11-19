@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { analyzeFood } from "@/app/actions/analyzeFood";
+import { useFoodClassifier } from "@/app/hooks/useFoodClassifier";
+import type { ClassificationResult } from "@/app/hooks/useFoodClassifier";
 import Spinner from "@/app/components/Spinner";
 import styles from "./page.module.css";
 
@@ -16,6 +17,10 @@ export default function Scan() {
   const [error, setError] = useState<string>("");
   const [debugInfo, setDebugInfo] = useState<string[]>([]);
   const [capturedImage, setCapturedImage] = useState<string>("");
+  const [classificationResult, setClassificationResult] = useState<ClassificationResult | null>(null);
+  
+  // Use the TensorFlow.js food classifier hook
+  const { model, isLoading: modelLoading, error: modelError, classifyImage } = useFoodClassifier();
 
   function addDebugInfo(message: string) {
     setDebugInfo((prev) => [
@@ -123,6 +128,12 @@ export default function Scan() {
       return;
     }
 
+    if (!model) {
+      addDebugInfo("ERROR: Model not loaded yet");
+      setError("AI model is still loading. Please wait...");
+      return;
+    }
+
     const video = videoRef.current;
     const canvas = canvasRef.current;
     const context = canvas.getContext("2d");
@@ -150,33 +161,24 @@ export default function Scan() {
     addDebugInfo(`Image size: ${imageDataUrl.length} characters`);
     addDebugInfo(`Image dimensions: ${canvas.width} x ${canvas.height}`);
 
-    // Call Server Action to analyze food
+    // Classify image with TensorFlow.js MobileNet
     setIsAnalyzing(true);
-    addDebugInfo("Sending to Ollama for analysis...");
+    setClassificationResult(null);
+    addDebugInfo("Classifying image with MobileNet...");
 
     try {
-      const result = await analyzeFood(imageDataUrl);
-
-      if (result.success) {
-        addDebugInfo("Analysis complete! Redirecting...");
-        
-        // Serialize the result for URL passing
-        const resultData = {
-          data: result.data,
-          rawResponse: result.rawResponse,
-          parseError: result.parseError,
-        };
-        
-        router.push(`/addData?result=${encodeURIComponent(JSON.stringify(resultData))}`);
-      } else {
-        addDebugInfo(`ERROR: ${result.error}`);
-        setError(result.error || "Failed to analyze image");
-        setIsAnalyzing(false);
-      }
+      // Classify the canvas element directly
+      const result = await classifyImage(canvas, 5); // Get top 5 predictions
+      
+      addDebugInfo(`Classification complete!`);
+      addDebugInfo(`Top prediction: ${result.topPrediction} (${(result.confidence * 100).toFixed(1)}%)`);
+      
+      setClassificationResult(result);
+      setIsAnalyzing(false);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : String(err);
       addDebugInfo(`ERROR: ${errorMessage}`);
-      setError("Failed to analyze image");
+      setError("Failed to classify image");
       setIsAnalyzing(false);
     }
   }
@@ -186,12 +188,29 @@ export default function Scan() {
       <main className={styles.main}>
         <h1>Scan New Bite</h1>
 
-        {isLoading && (
+        {/* Model loading status */}
+        {modelLoading && (
+          <div className={styles.status}>
+            <Spinner />
+            <p>Loading AI model...</p>
+          </div>
+        )}
+
+        {/* Model error */}
+        {modelError && (
+          <div className={styles.error}>
+            <p>Model Error: {modelError}</p>
+          </div>
+        )}
+
+        {/* Camera loading */}
+        {isLoading && !modelLoading && (
           <div className={styles.status}>
             <p>Initializing camera...</p>
           </div>
         )}
 
+        {/* General error */}
         {error && (
           <div className={styles.error}>
             <p>{error}</p>
@@ -206,10 +225,12 @@ export default function Scan() {
                   className={styles.capturedImageBg}
                   style={{ backgroundImage: `url(${capturedImage})` }}
                 >
-                  <div className={styles.status}>
-                    <Spinner />
-                    <p>Analyzing the bite with AI...</p>
-                  </div>
+                  {isAnalyzing && (
+                    <div className={styles.status}>
+                      <Spinner />
+                      <p>Analyzing the bite with AI...</p>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <video
@@ -221,16 +242,54 @@ export default function Scan() {
                 />
               )}
 
-              {!isAnalyzing && (
+              {!isAnalyzing && !capturedImage && (
                 <button
                   onClick={capturePhoto}
                   className={styles.captureButton}
                   aria-label="Capture photo"
+                  disabled={modelLoading}
                 >
                   <div className={styles.captureButtonInner} />
                 </button>
               )}
             </div>
+
+            {/* Classification Results (for testing) */}
+            {classificationResult && (
+              <div className={styles.resultContainer}>
+                <h2>Classification Results</h2>
+                <div className={styles.topResult}>
+                  <h3>{classificationResult.topPrediction}</h3>
+                  <p className={styles.confidence}>
+                    Confidence: {(classificationResult.confidence * 100).toFixed(1)}%
+                  </p>
+                </div>
+                
+                <div className={styles.allPredictions}>
+                  <h4>All Predictions:</h4>
+                  {classificationResult.allPredictions.map((pred, index) => (
+                    <div key={index} className={styles.predictionItem}>
+                      <span className={styles.predictionRank}>#{index + 1}</span>
+                      <span className={styles.predictionName}>{pred.className}</span>
+                      <span className={styles.predictionProb}>
+                        {(pred.probability * 100).toFixed(1)}%
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => {
+                    setCapturedImage("");
+                    setClassificationResult(null);
+                    setError("");
+                  }}
+                  className={styles.retryButton}
+                >
+                  Try Another Image
+                </button>
+              </div>
+            )}
           </>
         )}
 
